@@ -101,8 +101,6 @@ def parse_unembed(lines: list[str], fa: FeatureAllocator, fs: dict):
 
 def resolve(fa: FeatureAllocator, fs: dict, f: str):
     match f:
-        case "token.ANY":
-            return fa.ANY
         case "token.pos":
             return fa.POS
         case "token.emb":

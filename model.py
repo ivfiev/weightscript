@@ -3,8 +3,8 @@ type mat = list[list[float]]
 
 D = 192
 V = "^abcdefghijklmnopqrstuvwxyz0123456789,|?$"
-E = {e: [1.0 if j in [0, 1 + i] else 0.0 for j in range(D)] for i, e in enumerate(V)}
-P = {p: [1.0 if j == 1 + p + len(E) else 0.0 for j in range(D)] for p in range(18)}
+E = {e: [1.0 if j == i else 0.0 for j in range(D)] for i, e in enumerate(V)}
+P = {p: [1.0 if j == p + len(E) else 0.0 for j in range(D)] for p in range(18)}
 
 
 def mm(a: mat, b: mat) -> mat:

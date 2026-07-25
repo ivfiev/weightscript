@@ -12,8 +12,8 @@ def is_palindrome(s: str) -> str:
         [
             [
                 [
-                    ["QUERY", [a.ANY]],  # Q = [1]
-                    ["KEY", [who("$")]],  # K = [1] if end-of-str token
+                    ["QUERY", (a.EMB, len(E), one_hot(len(E), "$"))],
+                    ["KEY", slice(a.EMB, len(E))],
                     ["VALUE", slice(a.POS, len(P))],  # if match, then copy pos
                     ["PROJ", slice(POS, len(P))],  # project into POS subspace
                 ],
@@ -87,8 +87,8 @@ def reverse(s: str) -> str:
             [
                 [
                     # copy pos of $ into each token
-                    ["QUERY", [a.ANY]],
-                    ["KEY", [who("$")]],
+                    ["QUERY", (a.EMB, len(E), one_hot(len(E), "$"))],
+                    ["KEY", slice(a.EMB, len(E))],
                     ["VALUE", slice(a.POS, len(P))],
                     ["PROJ", slice(POS, len(P))],
                 ],
@@ -131,15 +131,15 @@ def kv(s: str, r: str) -> str:
             [
                 [
                     # copy pos of , into each token
-                    ["QUERY", [a.ANY]],
-                    ["KEY", [who(",")]],
+                    ["QUERY", (a.EMB, len(E), one_hot(len(E), ","))],
+                    ["KEY", slice(a.EMB, len(E))],
                     ["VALUE", slice(a.POS, len(P))],
                     ["PROJ", slice(COMMA, len(P))],
                 ],
                 [
                     # copy pos of $ into each token
-                    ["QUERY", [a.ANY]],
-                    ["KEY", [who("$")]],
+                    ["QUERY", (a.EMB, len(E), one_hot(len(E), "$"))],
+                    ["KEY", slice(a.EMB, len(E))],
                     ["VALUE", slice(a.POS, len(P))],
                     ["PROJ", slice(EOF, len(P))],
                 ],
