@@ -5,16 +5,12 @@ Features:
 Block:
   Attention:
     - Head:
-        Query: token.ANY  
-        Key: token($)
-        Value: token.pos
+        Query: '$'
+        Key: EMB
+        Value: POS
         Proj: pos
   FeedForward:
-    - subtract(pos, token.pos)
-    - subtract(pos, token.pos)
-    - subtract(pos, token.pos)
-    - subtract(pos, token.pos)
-    - subtract(pos, token.pos)
+    - pos -= POS
 
 Unembed:
   Char: bro 

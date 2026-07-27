@@ -3,11 +3,11 @@ from lang import *
 
 def is_palindrome(s: str) -> str:
     a = FeatureAllocator()
-    S = a.alloc()
-    POS = a.alloc(len(P))
-    ID = a.alloc(len(E))
-    CMP = a.alloc()
-    RESULT = a.alloc()
+    S = a.alloc("S")
+    POS = a.alloc("POS", len(P))
+    ID = a.alloc("ID", len(E))
+    CMP = a.alloc("CMP")
+    RESULT = a.alloc("RESULT")
     code = [
         [
             [
@@ -80,8 +80,8 @@ def is_palindrome(s: str) -> str:
 
 def reverse(s: str) -> str:
     a = FeatureAllocator()
-    POS = a.alloc(len(P))
-    BRO = a.alloc(len(E))
+    POS = a.alloc("POS", len(P))
+    BRO = a.alloc("BRO", len(E))
     code = [
         [
             [
@@ -118,14 +118,14 @@ def reverse(s: str) -> str:
 
 def kv(s: str, r: str) -> str:
     a = FeatureAllocator()
-    COMMA = a.alloc(len(P))
-    EOF = a.alloc(len(P))
-    GT = a.alloc()
-    LT = a.alloc()
-    BETWEEN = a.alloc()
-    OUTSIDE = a.alloc()
-    POS = a.alloc(len(P))
-    VALUE = a.alloc(len(E))
+    COMMA = a.alloc("COMMA", len(P))
+    EOF = a.alloc("EOF", len(P))
+    GT = a.alloc("GT")
+    LT = a.alloc("LT")
+    BETWEEN = a.alloc("BETWEEN")
+    OUTSIDE = a.alloc("OUTSIDE")
+    POS = a.alloc("POS", len(P))
+    VALUE = a.alloc("VALUE", len(E))
     code = [
         [
             [

@@ -18,6 +18,6 @@ if __name__ == "__main__":
         try:
             with open(args.run, "r") as f:
                 code = f.read()
-                print(parse(code))
+                T = run(parse(code), "hello")
         except FileNotFoundError as fee:
             print(fee)

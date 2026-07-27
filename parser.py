@@ -1,7 +1,7 @@
 import sys
 import traceback
 
-from lang import FeatureAllocator
+from lang import *
 from model import P, E
 
 LINE_NUM = 0
@@ -12,54 +12,49 @@ def parse(code: str) -> list[list]:
         lines = [s.strip(" \t") for s in code.split("\n")]
         parsed = []
         fa = FeatureAllocator()
-        fs = {}
         while lines:
             line = first(lines)
-            print(f"'{line}'")
             match line:
                 case "Features:":
-                    parse_features(lines, fa, fs)
+                    parse_features(lines, fa)
                 case "Block:":
-                    parsed.append(parse_block(lines, fa, fs))
+                    parsed.append(parse_block(lines, fa))
                 case "Unembed:":
-                    parsed.append(parse_unembed(lines, fa, fs))
+                    parsed.append(parse_unembed(lines, fa))
                 case _:
                     continue
-            print(parsed)
-            print("---")
         return parsed
     except Exception as e:
         traceback.print_exc()
         return fail(e)
 
 
-def parse_features(lines: list[str], fa: FeatureAllocator, fs: dict):
-    line = first(lines)
-    while line:
+def parse_features(lines: list[str], fa: FeatureAllocator):
+    while line := first(lines):
         key, size = line.split(": ")
         r = len(P) if size == "number" else len(E) if size == "char" else 1
-        fs[key] = fa.alloc(r)
+        fa.alloc(key, r)
         if lines[0] == "":
             break
-        line = first(lines)
 
 
-def parse_block(lines: list[str], fa: FeatureAllocator, fs: dict) -> list:
+def parse_block(lines: list[str], fa: FeatureAllocator) -> list:
     parsed = []
     line = first(lines)
     if line == "Attention:":
-        parsed.append(parse_attention(lines, fa, fs))
+        parsed.append(parse_attention(lines, fa))
     else:
         fail(f"unexpected '{line}'")
     line = first(lines)
     if line == "FeedForward:":
-        parsed.append(parse_feedforward(lines, fs))
+        parsed.append(parse_feedforward(lines, fa))
     else:
         fail(f"unexpected '{line}'")
     return parsed
 
 
-def parse_attention(lines: list[str], fa: FeatureAllocator, fs: dict):
+def parse_attention(lines: list[str], fa: FeatureAllocator):
+    parsed = []
     line = first(lines)
     if line == "- Head:":
         q = first(lines).split()
@@ -68,47 +63,56 @@ def parse_attention(lines: list[str], fa: FeatureAllocator, fs: dict):
         p = first(lines).split()
         match [q, k, v, p]:
             case [["Query:", q], ["Key:", k], ["Value:", v], ["Proj:", p]]:
-                return [
-                    ["QUERY", [resolve(fa, fs, q)]],
-                    ["KEY", [resolve(fa, fs, k)]],
-                    ["VALUE", [resolve(fa, fs, v)]],
-                    ["PROJ", [resolve(fa, fs, p)]],
-                ]
-
-
-def parse_feedforward(lines: list[str], fs: dict):
-    parsed = []
-    line = first(lines)
-    while line.startswith("-"):
-        parsed.append(["AND", [], []])
-        line = first(lines)
+                parsed.append(
+                    [
+                        ["QUERY", resolve(fa, q)],
+                        ["KEY", resolve(fa, k)],
+                        ["VALUE", resolve(fa, v)],
+                        ["PROJ", resolve(fa, p)],
+                    ]
+                )
     return parsed
 
 
-def parse_unembed(lines: list[str], fa: FeatureAllocator, fs: dict):
+def parse_feedforward(lines: list[str], fa: FeatureAllocator):
     parsed = []
-    line = first(lines)
-    while line:
+    while (line := first(lines)).startswith("-"):
+        w = line.split()
+        if "-=" in w:
+            x0, x1 = var(fa, w[1])
+            y0, y1 = var(fa, w[3])
+            parsed.append(sub_one_hot(x0, y0, x1))
+    return parsed
+
+
+def parse_unembed(lines: list[str], fa: FeatureAllocator):
+    parsed = []
+    while line := first(lines):
         [k, v] = line.split(": ")
         match k:
             case "Char":
-                parsed.append(["CHAR", resolve(fa, fs, v)])
+                parsed.append(["CHAR", resolve(fa, v)])
             case "Tokens":
                 parsed.append(v)
-        line = first(lines)
     return parsed
 
 
-def resolve(fa: FeatureAllocator, fs: dict, f: str):
+def resolve(fa: FeatureAllocator, f: str) -> list | tuple:
     match f:
-        case "token.pos":
-            return fa.POS
-        case "token.emb":
-            return fa.EMB
-        case k if fs.get(k):
-            return fs[k]
+        case "POS":
+            return slice(fa.POS, len(P))
+        case "EMB":
+            return slice(fa.EMB, len(E))
+        case _ if len(f) == 3 and f[0] == "'" and f[2] == "'":
+            c = f[1]
+            if c.isdigit():
+                return (fa.POS, len(P), one_hot(len(P), c))
+            else:
+                return (fa.EMB, len(E), one_hot(len(E), c))
+        case _ if info := fa.info(f):
+            return [info[0]]
         case _:
-            fail(f"unknown feature '{f}'")
+            return fail(f"unknown feature '{f}'")
 
 
 def fail(e):
@@ -120,3 +124,10 @@ def first(lines: list) -> str:
     global LINE_NUM
     LINE_NUM += 1
     return lines.pop(0)
+
+
+def var(fa: FeatureAllocator, key) -> tuple:
+    x = fa.info(key)
+    if not x:
+        return fail(f"unknown variable '{key}'")
+    return x

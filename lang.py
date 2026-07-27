@@ -178,9 +178,20 @@ class FeatureAllocator:
         self.EMB = 0
         self.POS = len(E)
         self.n = len(E) + len(P)
+        self.fs = {
+            "EMB": (0, len(E)),
+            0: ("EMB", len(E)),
+            "POS": (len(E), len(P)),
+            len(E): ("POS", len(P)),
+        }
 
-    def alloc(self, range=1):
+    def alloc(self, name: str, range=1) -> int:
         assert self.n + range < D
         n = self.n
         self.n += range
+        self.fs[name] = (n, range)
+        self.fs[n] = (name, range)
         return n
+
+    def info(self, key) -> tuple | None:
+        return self.fs.get(key)
