@@ -1,7 +1,7 @@
 import argparse
 from model import *
 from lang import *
-from parser import parse
+from parser import parse_T
 
 
 def get_args():
@@ -18,6 +18,9 @@ if __name__ == "__main__":
         try:
             with open(args.run, "r") as f:
                 code = f.read()
-                T = run(parse(code), "hello")
+                T = parse_T(code)
+                print(T("^abba$"))
         except FileNotFoundError as fee:
             print(fee)
+
+    # todo maybe rid of the list ast

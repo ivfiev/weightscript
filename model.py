@@ -3,8 +3,9 @@ type mat = list[list[float]]
 
 D = 192
 V = "^abcdefghijklmnopqrstuvwxyz0123456789,|?$"
+R = 18
 E = {e: [1.0 if j == i else 0.0 for j in range(D)] for i, e in enumerate(V)}
-P = {p: [1.0 if j == p + len(E) else 0.0 for j in range(D)] for p in range(18)}
+P = {p: [1.0 if j == p + len(E) else 0.0 for j in range(D)] for p in range(R)}
 
 
 def mm(a: mat, b: mat) -> mat:
@@ -84,29 +85,46 @@ class FFN:
 
 
 class Block:
-    def __init__(self, attn: list[Attention], ffn: FFN):
+    def __init__(
+        self,
+        attn: list[Attention],
+        ffn: FFN,
+        output=None,
+    ):
         self.attn = attn
         self.ffn = ffn
+        self.output = output or (lambda _, __: None)
 
     def __call__(self, x: mat) -> mat:
         attns = [attn(x) for attn in self.attn]
         for a in attns:
             x = ma(x, a)
         x = binary_norm(x)
+        self.output(x, "Attention:")
         x = ma(x, self.ffn(x))
         x = binary_norm(x)
+        self.output(x, "FeedForward:")
         return x
 
 
 class Transformer:
-    def __init__(self, blocks: list[Block], emb: dict, pos: dict, unembed: tuple):
+    def __init__(
+        self,
+        blocks: list[Block],
+        emb: dict,
+        pos: dict,
+        unembed: tuple,
+        output=None,
+    ):
         self.blocks = blocks
         self.emb = emb
         self.pos = pos
         self.unembed = unembed
+        self.output = output or (lambda _, __: None)
 
     def __call__(self, x: str):
         m = self._embed(x)
+        self.output(m, "Initial:")
         for b in self.blocks:
             m = b(m)
         return self._unembed(m)

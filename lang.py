@@ -100,15 +100,14 @@ def build_unembed(code: list) -> tuple[mat, vec, str]:
     return (m, b, r)
 
 
-def run(program: list[list], input: str) -> str:
+def build_transformer(program: list[list], output=None) -> Transformer:
     blocks = []
-    unembed = None
     for code in program:
         if len(code) == 2:
-            blocks.append(Block([build_attn(code) for code in code[0]], build_ffn(code[1])))
+            blocks.append(Block([build_attn(code) for code in code[0]], build_ffn(code[1]), output))
         elif len(code) == 1:
             unembed = build_unembed(code[0])
-    return Transformer(blocks, E, P, unembed)(input)  # pyright: ignore[reportArgumentType]
+    return Transformer(blocks, E, P, unembed, output)
 
 
 def who(c):

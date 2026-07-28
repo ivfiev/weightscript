@@ -5,19 +5,19 @@ Features:
 Block:
   Attention:
     - Head:
-        Query: token.ANY  # shouldn't it be 'token($)' ? do we even need ANY anymore?
-        Key: token($) # shouldn't it be 'E', or maybe id() ?
-        Value: token.pos()
+        Query: '$'
+        Key: EMB
+        Value: POS
         Proj: pos
   FeedForward:
-    - subtract(pos, token.pos())
+    - pos -= POS
 
 Block:
   Attention:
     - Head:
         Query: pos
-        Key: token.pos()
-        Value: token.emb()
+        Key: POS
+        Value: EMB
         Proj: bro
   FeedForward:
     - 
