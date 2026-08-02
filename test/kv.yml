@@ -1,0 +1,57 @@
+Features:
+  pipe: number 
+  eof: number 
+  gt: bool
+  lt: bool
+  between: bool
+  outside: bool
+  pos: number
+  val: char
+
+   
+Block:
+  Attention:
+    - Head:
+        Query: ['|']
+        Key: EMB
+        Value: POS
+        Proj: pipe
+    - Head:
+        Query: ['$']
+        Key: EMB
+        Value: POS
+        Proj: eof
+  FeedForward:
+    - gt = pipe > POS
+    - lt = POS < eof 
+
+Block:
+  Attention:
+    -   
+  FeedForward:
+    - between = and gt,lt
+    - outside = nand gt,lt
+
+Block:
+  Attention:
+    - Head:
+        Query: [between,EMB]
+        Key: [outside,EMB]
+        Value: POS 
+        Proj: pos
+  FeedForward:
+    - pos++
+
+Block:
+  Attention:
+    - Head:
+        Query: pos
+        Key: POS
+        Value: EMB
+        Proj: val
+  FeedForward:
+    -
+
+Unembed:
+  Char: val
+  Tokens: 0:-1

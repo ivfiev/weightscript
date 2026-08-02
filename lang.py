@@ -1,6 +1,30 @@
 from model import *
 
 
+def build_attn(codes: list[list]) -> Attention:
+    q, k, v, p = [], [], [], []
+    for code in codes:
+        c = code[0]
+        features = code[1]
+        m = {
+            "QUERY": q,
+            "KEY": k,
+            "VALUE": v,
+            "PROJ": p,
+        }[c]
+        if isinstance(features, list):
+            for f in features:
+                m.append([0] * D)
+                m[-1][f] = 1.0
+        if isinstance(features, tuple):
+            for _ in range(features[1]):
+                m.append([0] * D)
+            for i in range(features[0], features[1]):
+                for j in range(features[1]):
+                    m[j][i] = features[2][j]
+    return Attention(t(q), t(k), t(v), p)
+
+
 def build_ffn(codes: list[list]) -> FFN:
     logic = ["AND", "OR", "NOT", "NOR", "NAND", "TWO"]
     other = ["ZERO"]
@@ -54,23 +78,6 @@ def build_ffn(codes: list[list]) -> FFN:
     return FFN(t(input), bias_in, t(output), bias_out)
 
 
-def build_attn(codes: list[list]) -> Attention:
-    q, k, v, p = [], [], [], []
-    for code in codes:
-        c = code[0]
-        features = code[1]
-        m = {
-            "QUERY": q,
-            "KEY": k,
-            "VALUE": v,
-            "PROJ": p,
-        }[c]
-        for f in features:
-            m.append([0] * D)
-            m[-1][f] = 1.0
-    return Attention(t(q), t(k), t(v), p)
-
-
 def build_unembed(code: list) -> tuple[mat, vec, str]:
     r = code[-1]
     m = [[0.0 for _ in range(len(V))] for _ in range(D)]
@@ -93,19 +100,18 @@ def build_unembed(code: list) -> tuple[mat, vec, str]:
     return (m, b, r)
 
 
-def run(program: list[list], input: str) -> str:
+def build_transformer(program: list[list], output=None) -> Transformer:
     blocks = []
-    unembed = None
     for code in program:
         if len(code) == 2:
-            blocks.append(Block([build_attn(code) for code in code[0]], build_ffn(code[1])))
+            blocks.append(Block([build_attn(code) for code in code[0]], build_ffn(code[1]), output))
         elif len(code) == 1:
             unembed = build_unembed(code[0])
-    return Transformer(blocks, E, P, unembed)(input)  # pyright: ignore[reportArgumentType]
+    return Transformer(blocks, E, P, unembed, output)
 
 
 def who(c):
-    return next(i for i, e in enumerate(E[c]) if e == 1.0 and i != 0)  # skips ANY flag
+    return next(i for i, e in enumerate(E[c]) if e == 1.0)
 
 
 def where(n):
@@ -114,6 +120,11 @@ def where(n):
 
 def slice(base, count):
     return [x for x in range(base, base + count)]
+
+
+def one_hot(n, c):
+    i = V.index(c) if isinstance(c, str) else c
+    return [1.0 if j == i else 0.0 for j in range(n)]
 
 
 # a = a - b
@@ -163,13 +174,23 @@ def gt_one_hot(a, b, c, d):
 
 class FeatureAllocator:
     def __init__(self):
-        self.ANY = 0
-        self.EMB = 1
-        self.POS = 1 + len(E)
-        self.n = 1 + len(E) + len(P)
+        self.EMB = 0
+        self.POS = len(E)
+        self.n = len(E) + len(P)
+        self.fs = {
+            "EMB": (0, len(E)),
+            0: ("EMB", len(E)),
+            "POS": (len(E), len(P)),
+            len(E): ("POS", len(P)),
+        }
 
-    def alloc(self, range=1):
+    def alloc(self, name: str, range=1) -> int:
         assert self.n + range < D
         n = self.n
         self.n += range
+        self.fs[name] = (n, range)
+        self.fs[n] = (name, range)
         return n
+
+    def info(self, key) -> tuple | None:
+        return self.fs.get(key)

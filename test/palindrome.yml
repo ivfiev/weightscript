@@ -1,0 +1,41 @@
+Features:
+  special: bool 
+  pos: number 
+  id: char
+  neq: bool
+  result: bool
+   
+Block:
+  Attention:
+    - Head:
+        Query: ['$']
+        Key: EMB
+        Value: POS
+        Proj: pos
+  FeedForward:
+    - special = nor '$','^'
+    - pos -= POS
+
+Block:
+  Attention:
+    - Head:
+        Query: pos 
+        Key: POS
+        Value: EMB
+        Proj: id
+  FeedForward:
+    - neq = id != EMB 
+
+Block:
+  Attention:
+    - Head:
+        Query: '^'
+        Key: special
+        Value: neq
+        Proj: result
+  FeedForward:
+    - result = not result
+
+Unembed:
+  Binary: result
+  Tokens: 0:1

@@ -1,0 +1,27 @@
+Features:
+  pos: number 
+  bro: char
+   
+Block:
+  Attention:
+    - Head:
+        Query: ['$']
+        Key: EMB
+        Value: POS
+        Proj: pos
+  FeedForward:
+    - pos -= POS
+
+Block:
+  Attention:
+    - Head:
+        Query: pos
+        Key: POS
+        Value: EMB
+        Proj: bro
+  FeedForward:
+    - 
+
+Unembed:
+  Char: bro 
+  Tokens: 1:-1

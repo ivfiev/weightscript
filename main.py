@@ -1,8 +1,28 @@
+import argparse
 from model import *
 from lang import *
+from parser import parse_T
+
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--compile", type=str, help="path to program")
+    parser.add_argument("--run", type=str, help="path to program")
+    args = parser.parse_args()
+    return args
+
 
 if __name__ == "__main__":
-    print(5)
+    args = get_args()
+    if args.run:
+        try:
+            with open(args.run, "r") as f:
+                code = f.read()
+                T = parse_T(code)
+                # print(T("^abba$"))
+                print(T("^a2b1|ab$"))
+        except FileNotFoundError as fee:
+            print(fee)
 
-    # broadcast bit, better FE, defaults, ?'s and simpler unembed
-    # compile/load/save. must do matrix unembed
+    # todo maybe rid of the list ast
+    # c = a + b
