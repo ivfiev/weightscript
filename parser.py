@@ -55,8 +55,10 @@ def parse_block(lines: list[str], fa: FeatureAllocator) -> list:
 
 def parse_attention(lines: list[str], fa: FeatureAllocator):
     parsed = []
-    line = first(lines)
-    if line == "- Head:":
+    while lines[0].startswith("-"):
+        line = first(lines)
+        if line == "-":
+            break
         q = first(lines).split()
         k = first(lines).split()
         v = first(lines).split()
@@ -91,11 +93,31 @@ def parse_feedforward(lines: list[str], fa: FeatureAllocator):
                 x0, _ = var(fa, w[1])
                 xs, size = zip(*var(fa, [w[3], w[5]]))
                 parsed.extend(neq_one_hot(xs[0], xs[1], size[0], x0))
+            if len(w) == 6 and w[4] == ">":
+                x0, _ = var(fa, w[1])
+                xs, size = zip(*var(fa, [w[3], w[5]]))
+                parsed.extend(gt_one_hot(xs[1], xs[0], size[0], x0))
+            if len(w) == 6 and w[4] == "<":
+                x0, _ = var(fa, w[1])
+                xs, size = zip(*var(fa, [w[3], w[5]]))
+                parsed.extend(lt_one_hot(xs[0], xs[1], size[0], x0))
         if len(w) == 5:
             if w[3] == "not":
                 x0, _ = var(fa, w[1])
                 y0, _ = var(fa, w[4])
-                parsed.append(["NOT", [x0], [y0]])
+                parsed.append(["NOT", [y0], [x0]])
+            elif w[3] == "and":
+                x0, _ = var(fa, w[1])
+                ys, _ = zip(*var(fa, w[4].split(",")))
+                parsed.append(["AND", ys, [x0]])
+            elif w[3] == "nand":
+                x0, _ = var(fa, w[1])
+                ys, _ = zip(*var(fa, w[4].split(",")))
+                parsed.append(["NAND", ys, [x0]])
+        if len(w) == 2:
+            if w[1].endswith("++"):
+                x0, x1 = var(fa, w[1][:-2])
+                parsed.extend(inc_one_hot(x0, x1))
     return parsed
 
 
@@ -119,8 +141,8 @@ def resolve(fa: FeatureAllocator, f: str) -> list | tuple:
             return slice(fa.POS, len(P))
         case "EMB":
             return slice(fa.EMB, len(E))
-        case _ if len(f) == 3 and f[0] == "[" and f[2] == "]":
-            c = f[1]
+        case _ if len(f) == 5 and f[0:2] == "['" and f[3:] == "']":
+            c = f[2]
             if c.isdigit():
                 return (fa.POS, len(P), one_hot(len(P), c))
             else:
@@ -130,6 +152,14 @@ def resolve(fa: FeatureAllocator, f: str) -> list | tuple:
             return [who(c)]
         case _ if info := fa.info(f):
             return [info[0] + i for i in range(info[1])]
+        case _ if f[0] == "[" and f[-1] == "]":
+            lists = [resolve(fa, g) for g in f[1:-1].split(",")]
+            result = []
+            for x in lists:
+                if not isinstance(x, list):
+                    raise TypeError()
+                result.extend(x)
+            return result
         case _:
             return fail(f"unknown feature '{f}'")
 

@@ -1,9 +1,9 @@
 type vec = list[float]
 type mat = list[list[float]]
 
-D = 192
-V = "^abcdefghijklmnopqrstuvwxyz0123456789,|?$"
-R = 18
+D = 72
+V = "^$abc123|"
+R = 12
 E = {e: [1.0 if j == i else 0.0 for j in range(D)] for i, e in enumerate(V)}
 P = {p: [1.0 if j == p + len(E) else 0.0 for j in range(D)] for p in range(R)}
 

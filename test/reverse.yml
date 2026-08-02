@@ -5,7 +5,7 @@ Features:
 Block:
   Attention:
     - Head:
-        Query: '$'
+        Query: ['$']
         Key: EMB
         Value: POS
         Proj: pos

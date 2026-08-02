@@ -19,8 +19,10 @@ if __name__ == "__main__":
             with open(args.run, "r") as f:
                 code = f.read()
                 T = parse_T(code)
-                print(T("^abba$"))
+                # print(T("^abba$"))
+                print(T("^a2b1|ab$"))
         except FileNotFoundError as fee:
             print(fee)
 
     # todo maybe rid of the list ast
+    # c = a + b
