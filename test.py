@@ -25,7 +25,7 @@ def is_palindrome(s: str) -> str:
             ],
             [
                 ["NOR", [who("^"), who("$")], [S]],  # mark non-special tokens
-                *sub_one_hot(POS, a.POS, len(P)),  # subtract actual pos from mirrored
+                *sub_one_hot(POS, a.POS, len(P), POS),  # subtract actual pos from mirrored
             ],
         ],
         [
@@ -99,7 +99,7 @@ def reverse(s: str) -> str:
                 ],
             ],
             [
-                *sub_one_hot(POS, a.POS, len(P)),  # obtain mirrored pos
+                *sub_one_hot(POS, a.POS, len(P), POS),  # obtain mirrored pos
             ],
         ],
         [

@@ -127,19 +127,19 @@ def one_hot(n, c):
     return [1.0 if j == i else 0.0 for j in range(n)]
 
 
-# a = a - b
-def sub_one_hot(a, b, c):
+# c = a - b
+def sub_one_hot(a, b, d, c):
     return [
-        *[["ZERO", i] for i in range(a, a + c)],
-        *[["AND", [i, j], [a + (i - a) - (j - b)]] for j in range(b, b + c) for i in range(a, a + c) if (i - a) >= (j - b)],
+        *[["ZERO", i] for i in range(c, c + d)],
+        *[["AND", [i, j], [c + (i - a) - (j - b)]] for j in range(b, b + d) for i in range(a, a + d) if (i - a) >= (j - b)],
     ]
 
 
-# a = a + b
-def add_one_hot(a, b, c):
+# c = a + b
+def add_one_hot(a, b, d, c):
     return [
-        *[["ZERO", i] for i in range(a, a + c)],
-        *[["AND", [i, j], [a + (i - a) + (j - b)]] for j in range(b, b + c) for i in range(a, a + c) if (i - a) + (j - b) < c],
+        *[["ZERO", i] for i in range(c, c + d)],
+        *[["AND", [i, j], [c + (i - a) + (j - b)]] for j in range(b, b + d) for i in range(a, a + d) if (i - a) + (j - b) < d],
     ]
 
 

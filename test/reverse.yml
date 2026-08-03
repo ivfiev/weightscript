@@ -10,7 +10,7 @@ Block:
         Value: POS
         Proj: pos
   FeedForward:
-    - pos -= POS
+    - pos = pos - POS
 
 Block:
   Attention:

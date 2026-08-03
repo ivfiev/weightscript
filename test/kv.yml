@@ -22,7 +22,7 @@ Block:
         Value: POS
         Proj: eof
   FeedForward:
-    - gt = pipe > POS
+    - gt = POS > pipe
     - lt = POS < eof 
 
 Block:

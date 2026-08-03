@@ -8,6 +8,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--compile", type=str, help="path to program")
     parser.add_argument("--run", type=str, help="path to program")
+    parser.add_argument("--input", type=str, help="program input")
     args = parser.parse_args()
     return args
 
@@ -26,4 +27,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    main(get_args())
+    print(main(get_args()))

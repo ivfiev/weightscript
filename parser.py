@@ -80,44 +80,50 @@ def parse_feedforward(lines: list[str], fa: FeatureAllocator):
     parsed = []
     while (line := first(lines)).startswith("-"):
         w = line.split()
-        if "-=" in w:
-            x0, x1 = var(fa, w[1])
-            y0, y1 = var(fa, w[3])
-            parsed.extend(sub_one_hot(x0, y0, x1))
-        if len(w) >= 4:
-            if w[3] == "nor":
-                x0, _ = var(fa, w[1])
+        match w[1:]:
+            case [xpp] if xpp.endswith("++"):
+                x, size = var(fa, xpp[:-2])
+                parsed.extend(inc_one_hot(x, size))
+            case [y, _, "not", x]:
+                y, _ = var(fa, y)
+                x, _ = var(fa, x)
+                parsed.append(["NOT", [x], [y]])
+            case [y, _, "and", xs]:
+                y, _ = var(fa, y)
                 xs, _ = zip(*var(fa, w[4].split(",")))
-                parsed.append(["NOR", xs, [x0]])
-            if len(w) == 6 and w[4] == "!=":
-                x0, _ = var(fa, w[1])
-                xs, size = zip(*var(fa, [w[3], w[5]]))
-                parsed.extend(neq_one_hot(xs[0], xs[1], size[0], x0))
-            if len(w) == 6 and w[4] == ">":
-                x0, _ = var(fa, w[1])
-                xs, size = zip(*var(fa, [w[3], w[5]]))
-                parsed.extend(gt_one_hot(xs[1], xs[0], size[0], x0))
-            if len(w) == 6 and w[4] == "<":
-                x0, _ = var(fa, w[1])
-                xs, size = zip(*var(fa, [w[3], w[5]]))
-                parsed.extend(lt_one_hot(xs[0], xs[1], size[0], x0))
-        if len(w) == 5:
-            if w[3] == "not":
-                x0, _ = var(fa, w[1])
-                y0, _ = var(fa, w[4])
-                parsed.append(["NOT", [y0], [x0]])
-            elif w[3] == "and":
-                x0, _ = var(fa, w[1])
-                ys, _ = zip(*var(fa, w[4].split(",")))
-                parsed.append(["AND", ys, [x0]])
-            elif w[3] == "nand":
-                x0, _ = var(fa, w[1])
-                ys, _ = zip(*var(fa, w[4].split(",")))
-                parsed.append(["NAND", ys, [x0]])
-        if len(w) == 2:
-            if w[1].endswith("++"):
-                x0, x1 = var(fa, w[1][:-2])
-                parsed.extend(inc_one_hot(x0, x1))
+                parsed.append(["AND", xs, [y]])
+            case [y, _, "nand", xs]:
+                y, _ = var(fa, y)
+                xs, _ = zip(*var(fa, w[4].split(",")))
+                parsed.append(["NAND", xs, [y]])
+            case [y, _, "nor", xs]:
+                y, _ = var(fa, y)
+                xs, _ = zip(*var(fa, w[4].split(",")))
+                parsed.append(["NOR", xs, [y]])
+            case [y, _, u, "!=", v]:
+                y, _ = var(fa, y)
+                [u, v], [size, _] = zip(*var(fa, [u, v]))
+                parsed.extend(neq_one_hot(u, v, size, y))
+            case [y, _, u, "<", v]:
+                y, _ = var(fa, y)
+                [u, v], [size, _] = zip(*var(fa, [u, v]))
+                parsed.extend(lt_one_hot(u, v, size, y))
+            case [y, _, u, ">", v]:
+                y, _ = var(fa, y)
+                [u, v], [size, _] = zip(*var(fa, [u, v]))
+                parsed.extend(gt_one_hot(u, v, size, y))
+            case [y, _, u, "-", v]:
+                y, _ = var(fa, y)
+                uv, [size, _] = zip(*var(fa, [u, v]))
+                parsed.extend(sub_one_hot(uv[0], uv[1], size, y))
+            case [y, _, u, "+", v]:
+                y, _ = var(fa, y)
+                uv, [size, _] = zip(*var(fa, [u, v]))
+                parsed.extend(add_one_hot(uv[0], uv[1], size, y))
+            case [y, _, u, "==", v]:
+                y, _ = var(fa, y)
+                uv, [size, _] = zip(*var(fa, [u, v]))
+                parsed.extend(eq_one_hot(uv[0], uv[1], size, y))
     return parsed
 
 
