@@ -1,7 +1,7 @@
 import argparse
 from model import *
 from lang import *
-from parser import parse_T
+from parser import parse_transformer
 
 
 def get_args():
@@ -17,11 +17,12 @@ def main(args):
         try:
             with open(args.run, "r") as f:
                 code = f.read()
-                t = parse_T(code)
-                # print(T("^abba$"))
+                t = parse_transformer(code)
                 return t(f"^{args.input}$")
         except FileNotFoundError as fee:
             print(fee)
+    else:
+        print("Usage: --run %filename% --input %string%")
 
 
 if __name__ == "__main__":

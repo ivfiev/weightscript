@@ -7,7 +7,7 @@ from model import P, E
 LINE_NUM = 0
 
 
-def parse_T(code: str) -> Transformer:
+def parse_transformer(code: str) -> Transformer:
     try:
         lines = [s.strip(" \t") for s in code.split("\n")]
         parsed = []
