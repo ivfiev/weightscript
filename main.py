@@ -12,17 +12,17 @@ def get_args():
     return args
 
 
-if __name__ == "__main__":
-    args = get_args()
-    if args.run:
+def main(args):
+    if args.run and args.input:
         try:
             with open(args.run, "r") as f:
                 code = f.read()
-                T = parse_T(code)
+                t = parse_T(code)
                 # print(T("^abba$"))
-                print(T("^a2b1|ab$"))
+                return t(f"^{args.input}$")
         except FileNotFoundError as fee:
             print(fee)
 
-    # todo maybe rid of the list ast
-    # c = a + b
+
+if __name__ == "__main__":
+    main(get_args())
