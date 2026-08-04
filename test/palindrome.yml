@@ -14,7 +14,7 @@ Block:
         Proj: pos
   FeedForward:
     - special = nor '$','^'
-    - pos -= POS
+    - pos = pos - POS
 
 Block:
   Attention:

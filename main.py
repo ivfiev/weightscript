@@ -1,28 +1,30 @@
 import argparse
 from model import *
 from lang import *
-from parser import parse_T
+from parser import parse_transformer
 
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--compile", type=str, help="path to program")
     parser.add_argument("--run", type=str, help="path to program")
+    parser.add_argument("--input", type=str, help="program input")
     args = parser.parse_args()
     return args
 
 
-if __name__ == "__main__":
-    args = get_args()
-    if args.run:
+def main(args):
+    if args.run and args.input:
         try:
             with open(args.run, "r") as f:
                 code = f.read()
-                T = parse_T(code)
-                # print(T("^abba$"))
-                print(T("^a2b1|ab$"))
+                t = parse_transformer(code)
+                return t(f"^{args.input}$")
         except FileNotFoundError as fee:
             print(fee)
+    else:
+        print("Usage: --run %filename% --input %string%")
 
-    # todo maybe rid of the list ast
-    # c = a + b
+
+if __name__ == "__main__":
+    print(main(get_args()))

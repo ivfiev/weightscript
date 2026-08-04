@@ -8,7 +8,6 @@ Features:
   pos: number
   val: char
 
-   
 Block:
   Attention:
     - Head:
@@ -22,7 +21,7 @@ Block:
         Value: POS
         Proj: eof
   FeedForward:
-    - gt = pipe > POS
+    - gt = POS > pipe
     - lt = POS < eof 
 
 Block:
@@ -54,4 +53,4 @@ Block:
 
 Unembed:
   Char: val
-  Tokens: 0:-1
+  Tokens: -4:-1
