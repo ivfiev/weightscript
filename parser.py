@@ -8,6 +8,7 @@ LINE_NUM = 0
 
 
 def parse_transformer(code: str) -> Transformer:
+    reset()
     try:
         lines = [s.strip(" \t") for s in code.split("\n")]
         parsed = []
@@ -22,7 +23,7 @@ def parse_transformer(code: str) -> Transformer:
                 case "Unembed:":
                     parsed.append(parse_unembed(lines, fa))
                 case _:
-                    continue
+                    fail(f"unexpected '{line}'")
         return build_transformer(parsed, lambda m, s: print_columns(fa, m, s))
     except Exception as e:
         traceback.print_exc()
@@ -30,12 +31,11 @@ def parse_transformer(code: str) -> Transformer:
 
 
 def parse_features(lines: list[str], fa: FeatureAllocator):
-    while line := first(lines):
+    while lines[0] != "" and not lines[0].startswith("Block:"):
+        line = first(lines)
         key, size = line.split(": ")
         r = len(P) if size == "number" else len(E) if size == "char" else 1
         fa.alloc(key, r)
-        if lines[0] == "":
-            break
 
 
 def parse_block(lines: list[str], fa: FeatureAllocator) -> list:
@@ -55,7 +55,7 @@ def parse_block(lines: list[str], fa: FeatureAllocator) -> list:
 
 def parse_attention(lines: list[str], fa: FeatureAllocator):
     parsed = []
-    while lines[0].startswith("-"):
+    while lines[0] == "" or lines[0].startswith("-"):
         line = first(lines)
         if line == "-":
             break
@@ -73,14 +73,19 @@ def parse_attention(lines: list[str], fa: FeatureAllocator):
                         ["PROJ", resolve(fa, p)],
                     ]
                 )
+            case _:
+                fail(f"bad attention block, {q}, {k}, {v}, {p}")
     return parsed
 
 
 def parse_feedforward(lines: list[str], fa: FeatureAllocator):
     parsed = []
-    while (line := first(lines)).startswith("-"):
-        w = line.split()
-        match w[1:]:
+    while lines and lines[0].startswith("-"):
+        line = first(lines)
+        if line == "-":
+            continue
+        words = line.split()
+        match words[1:]:
             case [xpp] if xpp.endswith("++"):
                 x, size = var(fa, xpp[:-2])
                 parsed.extend(inc_one_hot(x, size))
@@ -90,15 +95,15 @@ def parse_feedforward(lines: list[str], fa: FeatureAllocator):
                 parsed.append(["NOT", [x], [y]])
             case [y, _, "and", xs]:
                 y, _ = var(fa, y)
-                xs, _ = zip(*var(fa, w[4].split(",")))
+                xs, _ = zip(*var(fa, xs.split(",")))
                 parsed.append(["AND", xs, [y]])
             case [y, _, "nand", xs]:
                 y, _ = var(fa, y)
-                xs, _ = zip(*var(fa, w[4].split(",")))
+                xs, _ = zip(*var(fa, xs.split(",")))
                 parsed.append(["NAND", xs, [y]])
             case [y, _, "nor", xs]:
                 y, _ = var(fa, y)
-                xs, _ = zip(*var(fa, w[4].split(",")))
+                xs, _ = zip(*var(fa, xs.split(",")))
                 parsed.append(["NOR", xs, [y]])
             case [y, _, u, "!=", v]:
                 y, _ = var(fa, y)
@@ -124,6 +129,8 @@ def parse_feedforward(lines: list[str], fa: FeatureAllocator):
                 y, _ = var(fa, y)
                 uv, [size, _] = zip(*var(fa, [u, v]))
                 parsed.extend(eq_one_hot(uv[0], uv[1], size, y))
+            case _:
+                fail(f"unsupported feed-forward op '{line}'")
     return parsed
 
 
@@ -197,13 +204,24 @@ def print_columns(fa: FeatureAllocator, m: mat, label: str):
 
 
 def fail(e):
-    print(f"{e} at line {LINE_NUM}", file=sys.stderr, flush=True)
+    traceback.print_stack()
+    print(f"\n{e} at line {LINE_NUM}", file=sys.stderr, flush=True)
     sys.exit(1)
 
 
-def first(lines: list) -> str:
+def reset():
     global LINE_NUM
+    LINE_NUM = 0
+
+
+def first(lines: list[str]) -> str:
+    global LINE_NUM
+    while lines and lines[0] == "":
+        lines.pop(0)
+        LINE_NUM += 1
     LINE_NUM += 1
+    if not lines:
+        return ""
     return lines.pop(0)
 
 

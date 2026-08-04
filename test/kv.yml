@@ -8,7 +8,6 @@ Features:
   pos: number
   val: char
 
-   
 Block:
   Attention:
     - Head:
