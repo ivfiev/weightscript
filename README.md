@@ -1,15 +1,17 @@
-# T-lang
-WIP
+# WeightScript
+A simple yaml-like language that gets translated to transformer weights.
 
-Sample program below constructs 2-block transformer for reversing strings.
 
-Features are 1-hot vectors superimposed in 72-dimensional space.
+Sample program below constructs 2-block transformer for checking whether a string is a palindrome. (there are more examples in ./test/ directory)
 
 
 ```yml
 Features:
+  special: bool 
   pos: number 
-  bro: char
+  id: char
+  neq: bool
+  result: bool
    
 Block:
   Attention:
@@ -19,20 +21,30 @@ Block:
         Value: POS
         Proj: pos
   FeedForward:
-    - pos -= POS
+    - special = nor '$','^'
+    - pos = pos - POS
 
 Block:
   Attention:
     - Head:
-        Query: pos
+        Query: pos 
         Key: POS
         Value: EMB
-        Proj: bro
+        Proj: id
   FeedForward:
-    - 
+    - neq = id != EMB 
+
+Block:
+  Attention:
+    - Head:
+        Query: '^'
+        Key: special
+        Value: neq
+        Proj: result
+  FeedForward:
+    - result = not result
 
 Unembed:
-  Char: bro 
-  Tokens: 1:-1
-
+  Binary: result
+  Tokens: 0:1
 ```
