@@ -1,5 +1,5 @@
 Features:
-  special: bool 
+  normal: bool 
   pos: number 
   id: char
   neq: bool
@@ -13,7 +13,7 @@ Block:
         Value: POS
         Proj: pos
   FeedForward:
-    - special = nor '$','^'
+    - normal = nor '$','^'
     - pos = pos - POS
 
 Block:
@@ -30,7 +30,7 @@ Block:
   Attention:
     - Head:
         Query: '^'
-        Key: special
+        Key: normal
         Value: neq
         Proj: result
   FeedForward:

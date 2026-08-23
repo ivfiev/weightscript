@@ -10,7 +10,7 @@ LINE_NUM = 0
 def parse_transformer(code: str) -> Transformer:
     reset()
     try:
-        lines = [s.strip(" \t") for s in code.split("\n")]
+        lines = [s.split("#")[0].strip(" \t") for s in code.split("\n")]
         parsed = []
         fa = FeatureAllocator()
         while lines:

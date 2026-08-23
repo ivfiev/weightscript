@@ -1,6 +1,6 @@
 Features:
-  pos: number 
-  bro: char
+  position: number 
+  mirrored: char
    
 Block:
   Attention:
@@ -8,20 +8,20 @@ Block:
         Query: ['$']
         Key: EMB
         Value: POS
-        Proj: pos
+        Proj: position
   FeedForward:
-    - pos = pos - POS
+    - position = position - POS
 
 Block:
   Attention:
     - Head:
-        Query: pos
+        Query: position
         Key: POS
         Value: EMB
-        Proj: bro
+        Proj: mirrored
   FeedForward:
     - 
 
 Unembed:
-  Char: bro 
+  Char: mirrored
   Tokens: 1:-1
