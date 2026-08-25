@@ -35,7 +35,7 @@ Unembed:                                # unembed specifies how to output the re
   Tokens: 1:-1                          # over all tokens, excluding special input start/end (^ and $) tokens
 ```
 
-Sample output from running an example:
+### Sample output:
 `python main.py --run ./test/reverse.yml --input abcd`
 
 ```
@@ -72,7 +72,7 @@ mirrored    $           d           c           b           a           ^
 Output: dcba
 ```
 
-Dump parameters:
+### Dumping parameters:
 `python main.py --weights ./test/reverse.yml`
 
 
