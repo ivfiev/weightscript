@@ -10,7 +10,7 @@ LINE_NUM = 0
 def parse_transformer(code: str) -> Transformer:
     reset()
     try:
-        lines = [s.strip(" \t") for s in code.split("\n")]
+        lines = [s.split("#")[0].strip(" \t") for s in code.split("\n")]
         parsed = []
         fa = FeatureAllocator()
         while lines:
@@ -178,26 +178,27 @@ def resolve(fa: FeatureAllocator, f: str) -> list | tuple:
 
 
 def print_columns(fa: FeatureAllocator, m: mat, label: str):
+    print_padded = lambda x: print(str(x).ljust(12), end="")
     print(label)
     d = 0
     while info := fa.info(d):
         key, dims = info
-        print(key, end="\t")
+        print_padded(key)
         for col in m:
             if dims == len(V):
                 ix = [i for i in range(dims) if col[d + i] == 1.0]
                 if ix:
-                    print(V[ix[0]], end="\t")
+                    print_padded(V[ix[0]])
                 else:
-                    print("-", end="\t")
+                    print_padded("-")
             if dims == R:
                 ix = [i for i in range(dims) if col[d + i] == 1.0]
                 if ix:
-                    print(ix[0], end="\t")
+                    print_padded(ix[0])
                 else:
-                    print("-", end="\t")
+                    print_padded("-")
             if dims == 1:
-                print(int(col[d]), end="\t")
+                print_padded(int(col[d]))
         d += dims
         print()
     print()

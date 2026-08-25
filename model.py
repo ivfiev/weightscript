@@ -138,7 +138,7 @@ class Transformer:
     def _unembed(self, m: mat):
         u, b, r = self.unembed
         ij = [int(x) for x in r.split(":") if x]
-        # TODO - pass the range at runtime instead
+        # TODO - pass the range at runtime instead?
         match ij:
             case []:
                 m = m[:]
