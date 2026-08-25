@@ -27,4 +27,5 @@ def main(args):
 
 
 if __name__ == "__main__":
-    print(main(get_args()))
+    result = main(get_args())
+    print(f"Output: {result}")

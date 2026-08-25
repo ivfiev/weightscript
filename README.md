@@ -1,31 +1,31 @@
 # WeightScript
-Create transformer model weights by hand from a yaml-like scripting language and observe residual states gradually evolve during the forward pass.
+Tiny YAML-like language for building transformer programs and watching them execute step by step.
 
 ## Examples
-Sample program below constructs 2-block transformer for reversing strings. (there are more examples in ./test/ directory)
+A program that reverses a string: (there are more examples in ./test/ directory)
 
 ```yml
 Features:                               # feature vectors are allocated explicitly. each token begins with standard EMB + POS vector
-  position: number                      # we'll need a feature to hold the position of the opposite token
-  mirrored: char                        # we'll also need to hold opposite token's embedding
+  position: number                      # each token will need a feature to hold the position of the opposite token
+  mirrored: char                        # we'll also need to hold opposite token's embedding/character
    
 Block:                                  # each block consists of 0 or more attention and feed-forward layers
                                         # in this block we compute the position of the mirrored/opposite token
   Attention:
     - Head:
         Query: ['$']                    # looking for end-of-input token ($)
-        Key: EMB                        # it gets compared with each tokens actual embedding
-        Value: POS                      # if match - position gets copied
-        Proj: position                  # Proj is equivalent to W_output. mirrored token's position is written to 'position' feature
+        Key: EMB                        # compare against each token
+        Value: POS                      # take its position
+        Proj: position                  # store it in 'position' feature
   FeedForward:
-    - position = position - POS         # then FFN subtracts token's current position from $'s position
+    - position = position - POS         # then FFN obtains mirrored position using subtraction
 
 Block:                                  # in this block we're copying the mirrored token's embedding
   Attention:
     - Head:
-        Query: position                 # looking for 'position' number
-        Key: POS                        # in token's actual position (POS)
-        Value: EMB                      # if match - copy it's embedding (EMB)
+        Query: position                 # we already know what position we want
+        Key: POS                        # find the token at that position
+        Value: EMB                      # copy its character
         Proj: mirrored                  # into 'mirrored'
   FeedForward:
     -                                   # we don't need any FFN computation in this block
@@ -36,9 +36,40 @@ Unembed:                                # unembed specifies how to output the re
 ```
 
 Sample output from running an example:
-`python main.py --run ./test/reverse.yml`
+`python main.py --run ./test/reverse.yml --input abcd`
+
 ```
-terminal output... (maybe put a smaller example higher as well)
+Initial:
+EMB         ^           a           b           c           d           $           
+POS         0           1           2           3           4           5           
+position    -           -           -           -           -           -           
+mirrored    -           -           -           -           -           -           
+
+Attention:
+EMB         ^           a           b           c           d           $           
+POS         0           1           2           3           4           5           
+position    5           5           5           5           5           5           
+mirrored    -           -           -           -           -           -           
+
+FeedForward:
+EMB         ^           a           b           c           d           $           
+POS         0           1           2           3           4           5           
+position    5           4           3           2           1           0           
+mirrored    -           -           -           -           -           -           
+
+Attention:
+EMB         ^           a           b           c           d           $           
+POS         0           1           2           3           4           5           
+position    5           4           3           2           1           0           
+mirrored    $           d           c           b           a           ^           
+
+FeedForward:
+EMB         ^           a           b           c           d           $           
+POS         0           1           2           3           4           5           
+position    5           4           3           2           1           0           
+mirrored    $           d           c           b           a           ^           
+
+Output: dcba
 ```
 
 Dump parameters:
@@ -46,8 +77,6 @@ Dump parameters:
 
 
 ## What you can do:
-- Program transformer layers using a simple YAML-like language
-- Compile programs directly into attention and FFN parameters
 - Inspect every intermediate state during forward pass
 - Watch attention move information between tokens
 - Watch FFNs perform symbolic computation within tokens
@@ -60,3 +89,6 @@ Some parts of the modern transformer are intentionally simplified to aid human u
 - Discretized attention - non-matching keys always contribute a 0 value
 - Simple custom "binary-norm" instead of LayerNorm/RMSNorm
 
+## Related projects
+- https://github.com/google-deepmind/tracr
+- https://arxiv.org/pdf/2106.06981
