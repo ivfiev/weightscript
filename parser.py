@@ -26,7 +26,7 @@ def parse_transformer(code: str) -> Transformer:
                     fail(f"unexpected '{line}'")
         return build_transformer(parsed, lambda m, s: print_columns(fa, m, s))
     except Exception as e:
-        traceback.print_exc()
+        # traceback.print_exc()
         return fail(e)
 
 
@@ -34,7 +34,15 @@ def parse_features(lines: list[str], fa: FeatureAllocator):
     while lines[0] != "" and not lines[0].startswith("Block:"):
         line = first(lines)
         key, size = line.split(": ")
-        r = len(P) if size == "number" else len(E) if size == "char" else 1
+        match size:
+            case "number":
+                r = len(P)
+            case "char":
+                r = len(E)
+            case "bool":
+                r = 1
+            case t:
+                raise Exception(f"bad type '{t}'")
         fa.alloc(key, r)
 
 
@@ -205,8 +213,8 @@ def print_columns(fa: FeatureAllocator, m: mat, label: str):
 
 
 def fail(e):
-    traceback.print_stack()
-    print(f"\n{e} at line {LINE_NUM}", file=sys.stderr, flush=True)
+    # traceback.print_stack()
+    print(f"{e} at line {LINE_NUM}", file=sys.stderr, flush=True)
     sys.exit(1)
 
 

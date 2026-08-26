@@ -13,15 +13,24 @@ def get_args():
     return args
 
 
+def validate_input(input):
+    if len(input) > R - 2:
+        raise Exception("input is too long")
+    for c in input:
+        if c not in V or c in "$^":
+            raise Exception(f"invalid input '{c}'")
+
+
 def main(args):
     if args.run and args.input:
         try:
+            validate_input(args.input)
             with open(args.run, "r") as f:
                 code = f.read()
                 t = parse_transformer(code)
                 return t(f"^{args.input}$")
-        except FileNotFoundError as fee:
-            print(fee)
+        except Exception as ex:
+            print(ex)
     else:
         print("Usage: --run %filename% --input %string%")
 

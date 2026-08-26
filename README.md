@@ -32,7 +32,7 @@ Block:                                  # in this block we're copying the mirror
 
 Unembed:                                # unembed specifies how to output the results
   Char: mirrored                        # here we're requesting the character stored in 'mirrored' feature space
-  Tokens: 1:-1                          # over all tokens, excluding special input start/end (^ and $) tokens
+  Tokens: 1:-1                          # over all tokens, excluding special input start/end (^ and $) tokens (python slice syntax)
 ```
 
 ### Sample output:
@@ -77,10 +77,10 @@ Output: dcba
 
 
 ## What you can do:
+- Deterministically construct the model parameters
 - Inspect every intermediate state during forward pass
 - Watch attention move information between tokens
 - Watch FFNs perform symbolic computation within tokens
-- Inspect the generated weights
 
 ## Deliberate simplifications:
 Some parts of the modern transformer are intentionally simplified to aid human understanding.
